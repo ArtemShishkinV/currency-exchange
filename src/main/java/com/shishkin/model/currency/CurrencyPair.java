@@ -1,5 +1,6 @@
-package com.shishkin.model;
+package com.shishkin.model.currency;
 
+import com.shishkin.model.currency.Currency;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;

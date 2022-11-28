@@ -1,7 +1,9 @@
 package com.shishkin.controller;
 
-import com.shishkin.model.Currency;
-import com.shishkin.model.CurrencyPair;
+import com.shishkin.model.Client;
+import com.shishkin.model.currency.Currency;
+import com.shishkin.model.currency.CurrencyPair;
+import com.shishkin.service.ClientService;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -16,5 +18,7 @@ public class TradingController {
 
     public static void start() {
         pairs.forEach(System.out::println);
+        Client client = new Client();
+        System.out.println(ClientService.getInfo(client));
     }
 }
