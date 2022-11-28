@@ -1,5 +1,6 @@
 package com.shishkin.model;
 
+import com.shishkin.exception.NotEnoughMoneyException;
 import com.shishkin.model.currency.Currency;
 import com.shishkin.utils.BigDecimalUtils;
 import lombok.Data;
@@ -25,6 +26,25 @@ public final class Client {
                 Currency.values()) {
             this.accounts.putIfAbsent(currency, BigDecimalUtils.round(new BigDecimal(0)));
         }
+    }
+
+    public void deposit(Currency currency, BigDecimal amount) throws IllegalArgumentException {
+        if (amount.compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) < 0) {
+            throw new IllegalArgumentException("deposit amount must be more than zero!");
+        }
+        accounts.merge(currency, amount, BigDecimal::add);
+    }
+
+    public void withdraw(Currency currency, BigDecimal amount) throws NotEnoughMoneyException {
+        if (amount.compareTo(this.accounts.get(currency)) > 0) {
+            throw new NotEnoughMoneyException(
+                    String.format("Client id: %d, not enough %s for withdraw; required: %f; access: %f;",
+                            this.id,
+                            currency.toString(),
+                            amount,
+                            this.accounts.get(currency)));
+        }
+        this.accounts.merge(currency, amount, BigDecimal::subtract);
     }
 
     public Map<Currency, BigDecimal> getAccounts() {

@@ -1,6 +1,7 @@
 package com.shishkin.service.implementation;
 
 import com.shishkin.dto.ClientOperationDto;
+import com.shishkin.exception.NotEnoughMoneyException;
 import com.shishkin.model.Client;
 import com.shishkin.model.currency.Currency;
 import com.shishkin.model.currency.CurrencyPair;
@@ -30,12 +31,20 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public void deposit(ClientOperationDto clientOperationDto) {
-
+        try {
+            clientService.deposit(clientOperationDto);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
     public void withdraw(ClientOperationDto clientOperationDto) {
-
+        try {
+            clientService.withdraw(clientOperationDto);
+        } catch (NotEnoughMoneyException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
