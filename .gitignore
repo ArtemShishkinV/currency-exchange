@@ -40,3 +40,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+.idea/sonarlint/issuestore/index.pb
+src/main/java/com/shishkin/controller/ThreadController.java
