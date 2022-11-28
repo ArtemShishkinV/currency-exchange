@@ -1,22 +1,12 @@
 package com.shishkin.model.currency;
 
-import com.shishkin.model.currency.Currency;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.Data;
 
-@Value
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Data
+@AllArgsConstructor
 public class CurrencyPair {
     Currency from;
     Currency to;
     double price;
-    String ticker;
-
-    public CurrencyPair(Currency from, Currency to, double price) {
-        this.from = from;
-        this.to = to;
-        this.price = price;
-        this.ticker = from.name() + to.name();
-    }
 }

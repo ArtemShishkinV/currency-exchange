@@ -5,6 +5,7 @@ import com.shishkin.utils.BigDecimalUtils;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,4 +27,7 @@ public final class Client {
         }
     }
 
+    public Map<Currency, BigDecimal> getAccounts() {
+        return new EnumMap<>(this.accounts);
+    }
 }
