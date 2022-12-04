@@ -1,6 +1,7 @@
-package com.shishkin.service;
+package com.shishkin.service.client;
 
 import com.shishkin.model.Client;
+import com.shishkin.service.ClientService;
 import com.shishkin.service.implementation.ClientServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

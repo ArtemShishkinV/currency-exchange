@@ -1,6 +1,7 @@
 package com.shishkin.service;
 
 import com.shishkin.dto.ClientOperationDto;
+import com.shishkin.dto.OrderOperationDto;
 import com.shishkin.model.Client;
 import com.shishkin.model.order.Order;
 
@@ -11,7 +12,7 @@ public interface ExchangeService {
 
     void withdraw(ClientOperationDto clientOperationDto);
 
-    void createOrder();
+    Order createOrder(OrderOperationDto orderOperationDto);
 
     Order getOrders();
 

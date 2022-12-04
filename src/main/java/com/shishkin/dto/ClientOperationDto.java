@@ -17,6 +17,6 @@ public record ClientOperationDto(Client client,
     }
 
     public static ClientOperationDto create(Client client, Currency currency, int amount) {
-        return new ClientOperationDto(client, currency, BigDecimal.valueOf(amount));
+        return new ClientOperationDto(client, currency, BigDecimalUtils.round(BigDecimal.valueOf(amount)));
     }
 }

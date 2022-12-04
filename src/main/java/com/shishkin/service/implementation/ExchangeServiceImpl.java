@@ -1,6 +1,7 @@
 package com.shishkin.service.implementation;
 
 import com.shishkin.dto.ClientOperationDto;
+import com.shishkin.dto.OrderOperationDto;
 import com.shishkin.exception.NotEnoughMoneyException;
 import com.shishkin.model.Client;
 import com.shishkin.model.currency.Currency;
@@ -48,8 +49,8 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     @Override
-    public void createOrder() {
-
+    public Order createOrder(OrderOperationDto orderOperationDto) {
+        return null;
     }
 
     @Override
