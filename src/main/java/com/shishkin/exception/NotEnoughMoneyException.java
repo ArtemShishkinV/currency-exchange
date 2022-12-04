@@ -1,6 +1,6 @@
 package com.shishkin.exception;
 
-public class NotEnoughMoneyException extends RuntimeException{
+public class NotEnoughMoneyException extends Exception{
     public NotEnoughMoneyException() {
         super();
     }

@@ -24,7 +24,7 @@ public class TradingController {
     public static void start() {
         Client client = exchangeService.createClient();
         exchangeService.getInfo(client);
-        exchangeService.deposit(new ClientOperationDto(client, Currency.RUB, 110));
+        exchangeService.deposit(ClientOperationDto.create(client, Currency.RUB, 110));
         exchangeService.getInfo(client);
         exchangeService.withdraw((new ClientOperationDto(client, Currency.RUB, BigDecimal.valueOf(110.0001))));
         exchangeService.getInfo(client);

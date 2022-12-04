@@ -7,6 +7,6 @@ public class LimitOrder extends Order{
 
     public LimitOrder(OrderOperationDto orderOperationDto) {
         super(orderOperationDto);
-        this.orderDirection = orderOperationDto.getOrderDirection();
+        this.orderDirection = orderOperationDto.orderDirection();
     }
 }

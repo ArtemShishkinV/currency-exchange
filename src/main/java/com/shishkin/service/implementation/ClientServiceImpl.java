@@ -15,14 +15,14 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void deposit(ClientOperationDto clientOperationDto) throws IllegalArgumentException {
-        Client client = clientOperationDto.getClient();
-        client.deposit(clientOperationDto.getCurrency(), clientOperationDto.getAmount());
+        Client client = clientOperationDto.client();
+        client.deposit(clientOperationDto.currency(), clientOperationDto.amount());
     }
 
     @Override
     public void withdraw(ClientOperationDto clientOperationDto) throws NotEnoughMoneyException {
-        Client client = clientOperationDto.getClient();
-        client.withdraw(clientOperationDto.getCurrency(), clientOperationDto.getAmount());
+        Client client = clientOperationDto.client();
+        client.withdraw(clientOperationDto.currency(), clientOperationDto.amount());
     }
 
     public String getInfo(Client client) {

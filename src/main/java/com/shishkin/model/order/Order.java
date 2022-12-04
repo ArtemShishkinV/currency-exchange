@@ -15,12 +15,13 @@ public abstract class Order {
     private final Client client;
     private final BigDecimal price;
     private BigDecimal amount;
-    private CurrencyPair currencyPair;
+    private final CurrencyPair currencyPair;
 
     protected Order(OrderOperationDto orderOperationDto) {
         this.id = UUID.randomUUID().getMostSignificantBits();
-        this.client = orderOperationDto.getClient();
-        this.price = orderOperationDto.getPrice();
-        this.amount = orderOperationDto.getAmount();
+        this.client = orderOperationDto.client();
+        this.price = orderOperationDto.price();
+        this.amount = orderOperationDto.amount();
+        this.currencyPair = orderOperationDto.currencyPair();
     }
 }
