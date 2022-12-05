@@ -7,6 +7,7 @@ import com.shishkin.service.OrderService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class Order {
     private final Long id;
     private OrderStatus status;
+    @ToString.Exclude
     private final Client client;
     private final BigDecimal price;
     private BigDecimal amount;

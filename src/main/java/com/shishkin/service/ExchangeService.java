@@ -18,5 +18,5 @@ public interface ExchangeService {
 
     List<Order> getOrders();
 
-    void getInfo(Client client);
+    String getInfo(Client client);
 }

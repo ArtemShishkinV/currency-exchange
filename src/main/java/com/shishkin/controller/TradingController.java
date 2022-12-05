@@ -21,33 +21,36 @@ public class TradingController {
     private static final Set<CurrencyPair> CURRENCY_PAIRS = Set.of(
             new CurrencyPair(Currency.RUB, Currency.USD)
     );
-    private static final ExchangeService exchangeService = new ExchangeServiceImpl(CURRENCY_PAIRS);
-
+    private static final ExchangeService EXCHANGE_SERVICE = new ExchangeServiceImpl(CURRENCY_PAIRS);
+    private static final OrderService ORDER_SERVICE = new OrderServiceImpl();
 
     public static void start() {
-        Client client = exchangeService.createClient();
-        Client anotherClient = exchangeService.createClient();
-        exchangeService.getInfo(client);
-        exchangeService.deposit(ClientOperationDto.create(client, Currency.RUB, 350));
-        exchangeService.deposit(ClientOperationDto.create(anotherClient, Currency.USD, 7));
-        exchangeService.getInfo(client);
-        exchangeService.getInfo(anotherClient);
+        Client client = EXCHANGE_SERVICE.createClient();
+        Client anotherClient = EXCHANGE_SERVICE.createClient();
+        EXCHANGE_SERVICE.getInfo(client);
+        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(client, Currency.RUB, 350));
+        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(anotherClient, Currency.USD, 7));
 
-        exchangeService.createOrder(new OrderOperationDto(
+        System.out.println(EXCHANGE_SERVICE.getInfo(client));
+        System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
+
+        EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
                 client,
                 new CurrencyPair(Currency.RUB, Currency.USD),
                 OrderDirection.BUY,
-                BigDecimal.valueOf(7),
+                BigDecimal.valueOf(6),
                 BigDecimal.valueOf(50)));
 
-        exchangeService.createOrder(new OrderOperationDto(
+        EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
                 anotherClient,
                 new CurrencyPair(Currency.USD, Currency.RUB),
                 OrderDirection.SELL,
                 BigDecimal.valueOf(7),
                 BigDecimal.valueOf(50)));
 
-        exchangeService.getInfo(client);
-        exchangeService.getInfo(anotherClient);
+        EXCHANGE_SERVICE.getOrders().forEach(ORDER_SERVICE::revoke);
+        System.out.println(EXCHANGE_SERVICE.getInfo(client));
+        System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
+        System.out.println(EXCHANGE_SERVICE.getOrders());
     }
 }

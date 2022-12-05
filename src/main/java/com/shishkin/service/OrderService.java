@@ -2,10 +2,11 @@ package com.shishkin.service;
 
 import com.shishkin.dto.OrderOperationDto;
 import com.shishkin.exception.NotEnoughMoneyException;
-import com.shishkin.model.currency.Currency;
+import com.shishkin.model.currency.CurrencyPair;
 import com.shishkin.model.order.Order;
 
 import java.util.List;
+import java.util.Map;
 
 public interface OrderService {
     Order createOrder(OrderOperationDto orderOperationDto) throws NotEnoughMoneyException;
@@ -14,7 +15,7 @@ public interface OrderService {
 
     void revoke(Order order);
 
-    List<Order> getOrders(Currency currency);
+    List<Order> getActiveOrders(Map<CurrencyPair, List<Order>> orders);
 
-    List<Order> getAllOrders();
+    List<Order> getAllOrders(Map<CurrencyPair, List<Order>> orders);
 }

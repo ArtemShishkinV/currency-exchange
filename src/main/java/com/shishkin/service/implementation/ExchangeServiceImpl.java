@@ -7,6 +7,7 @@ import com.shishkin.model.Client;
 import com.shishkin.model.currency.CurrencyPair;
 import com.shishkin.model.order.Order;
 import com.shishkin.model.order.OrderDirection;
+import com.shishkin.model.order.OrderStatus;
 import com.shishkin.service.ClientService;
 import com.shishkin.service.ExchangeService;
 import com.shishkin.service.OrderService;
@@ -21,9 +22,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ExchangeServiceImpl implements ExchangeService {
+    private static final OrderService ORDER_SERVICE = new OrderServiceImpl();
+    private static final ClientService CLIENT_SERVICE = new ClientServiceImpl();
     private final Map<CurrencyPair, List<Order>> orders;
-    private final OrderService orderService = new OrderServiceImpl();
-    private final ClientService clientService = new ClientServiceImpl();
 
     public ExchangeServiceImpl(Set<CurrencyPair> currencyPairs) {
         this.orders = new ConcurrentHashMap<>(currencyPairs.size());
@@ -34,13 +35,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public Client createClient() {
-        return clientService.create();
+        return CLIENT_SERVICE.create();
     }
 
     @Override
     public void deposit(ClientOperationDto clientOperationDto) {
         try {
-            clientService.deposit(clientOperationDto);
+            CLIENT_SERVICE.deposit(clientOperationDto);
         } catch (IllegalArgumentException e) {
             System.err.println(e.getMessage());
         }
@@ -49,7 +50,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public void withdraw(ClientOperationDto clientOperationDto) {
         try {
-            clientService.withdraw(clientOperationDto);
+            CLIENT_SERVICE.withdraw(clientOperationDto);
         } catch (NotEnoughMoneyException e) {
             System.err.println(e.getMessage());
         }
@@ -58,18 +59,15 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public void createOrder(OrderOperationDto orderOperationDto) {
         try {
-            Order order = orderService.createOrder(orderOperationDto);
+            Order order = ORDER_SERVICE.createOrder(orderOperationDto);
             synchronized (order.getCurrencyPair()) {
                 List<Order> matchOrders = orders.get(order.getCurrencyPair()).stream()
                         .filter(item -> matchOrdersFilter(item, order))
                         .sorted(Comparator.comparing(Order::getPrice))
                         .toList();
                 matchOrders.forEach(matchOrder -> {
-                    BigDecimal amount = matchOrder.getAmount().min(order.getAmount());
-                    BigDecimal price = getPriceByOrderDirection(matchOrder, order);
-                    System.out.println("#match: "+ order.getId() + " - " + matchOrder.getId());
-
-                    orderService.execute(matchOrder, order);
+                    System.out.println("#match: " + order.getId() + " - " + matchOrder.getId());
+                    ORDER_SERVICE.execute(matchOrder, order);
                 });
                 if (order.getAmount().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
                     orders.get(orderOperationDto.getCurrencyPair()).add(order);
@@ -83,16 +81,17 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public List<Order> getOrders() {
-        return null;
+        return ORDER_SERVICE.getActiveOrders(orders);
     }
 
     @Override
-    public void getInfo(Client client) {
-        System.out.println(clientService.getInfo(client));
+    public String getInfo(Client client) {
+        return CLIENT_SERVICE.getInfo(client);
     }
 
     private boolean matchOrdersFilter(Order order, Order anotherOrder) {
-        return filterByType(order, anotherOrder) && filterByPrice(order, anotherOrder);
+        return filterByType(order, anotherOrder) && filterByPrice(order, anotherOrder)
+                && OrderStatus.isActiveOrder(order) && OrderStatus.isActiveOrder(anotherOrder);
     }
 
     private boolean filterByType(Order order, Order anotherOrder) {
@@ -100,17 +99,12 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     private boolean filterByPrice(Order order, Order anotherOrder) {
-        if(OrderDirection.BUY.equals(order.getOrderDirection())) {
+        if (OrderDirection.BUY.equals(order.getOrderDirection())) {
             return order.getPrice().compareTo(anotherOrder.getPrice()) >= 0;
         } else {
             return order.getPrice().compareTo(anotherOrder.getPrice()) <= 0;
         }
     }
 
-    private BigDecimal getPriceByOrderDirection(Order order, Order anotherOrder) {
-        if(OrderDirection.BUY.equals(order.getOrderDirection())) {
-            return order.getPrice().min(anotherOrder.getPrice());
-        }
-        return order.getPrice().max(anotherOrder.getPrice());
-    }
+
 }
