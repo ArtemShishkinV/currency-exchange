@@ -12,4 +12,5 @@ public interface ClientService {
     void deposit(ClientOperationDto clientOperationDto) throws IllegalArgumentException;
 
     void withdraw(ClientOperationDto clientOperationDto) throws NotEnoughMoneyException;
+
 }

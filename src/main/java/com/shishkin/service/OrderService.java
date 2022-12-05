@@ -10,6 +10,10 @@ import java.util.List;
 public interface OrderService {
     Order createOrder(OrderOperationDto orderOperationDto) throws NotEnoughMoneyException;
 
+    void execute(Order order, Order anotherOrder);
+
+    void revoke(Order order);
+
     List<Order> getOrders(Currency currency);
 
     List<Order> getAllOrders();
