@@ -50,7 +50,6 @@ public class OrderServiceImpl implements OrderService {
 
     private void partiallyFillOrders(Order buyOrder, Order sellOrder) {
         BigDecimal amount = buyOrder.getAmount().min(sellOrder.getAmount());
-        System.out.println(amount);
         BigDecimal price = getPriceByOrderDirection(buyOrder, sellOrder);
 
         partiallyFillOrder(buyOrder, amount, price);

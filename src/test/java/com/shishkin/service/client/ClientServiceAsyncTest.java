@@ -44,7 +44,7 @@ class ClientServiceAsyncTest {
                     this.countDownLatch.await();
                     clientService.deposit(ClientOperationDto.create(client, Currency.EUR, 10));
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
                 }
             });
         }
@@ -69,8 +69,10 @@ class ClientServiceAsyncTest {
                 try {
                     this.countDownLatch.await();
                     clientService.withdraw(ClientOperationDto.create(client, Currency.EUR, 10));
-                } catch (InterruptedException | NotEnoughMoneyException e) {
-                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (NotEnoughMoneyException e) {
+                    System.err.println(e.getMessage());
                 }
             });
         }
@@ -93,8 +95,10 @@ class ClientServiceAsyncTest {
                 try {
                     this.countDownLatch.await();
                     clientService.withdraw(ClientOperationDto.create(client, Currency.EUR, 11));
-                } catch (InterruptedException | NotEnoughMoneyException e) {
-                    System.out.println(e.getMessage());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (NotEnoughMoneyException e) {
+                    System.err.println(e.getMessage());
                 }
             });
         }

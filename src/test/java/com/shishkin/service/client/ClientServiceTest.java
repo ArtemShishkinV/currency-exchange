@@ -28,7 +28,7 @@ class ClientServiceTest {
     @BeforeEach
     void setupEach() {
         client = clientService.create();
-    };
+    }
 
     @Test
     void createClient() {
