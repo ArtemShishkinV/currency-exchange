@@ -3,6 +3,7 @@ package com.shishkin.dto;
 import com.shishkin.model.Client;
 import com.shishkin.model.currency.CurrencyPair;
 import com.shishkin.model.order.OrderDirection;
+import com.shishkin.utils.BigDecimalUtils;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public class OrderOperationDto {
         this.amount = amount;
         this.price = price;
         if (OrderDirection.BUY.equals(orderDirection)) {
-            this.totalPrice = amount.multiply(price);
+            this.totalPrice = BigDecimalUtils.round(amount.multiply(price));
         } else {
             this.totalPrice = amount;
         }

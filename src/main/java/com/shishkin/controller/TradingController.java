@@ -29,7 +29,7 @@ public class TradingController {
         Client anotherClient = EXCHANGE_SERVICE.createClient();
         EXCHANGE_SERVICE.getInfo(client);
         EXCHANGE_SERVICE.deposit(ClientOperationDto.create(client, Currency.RUB, 350));
-        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(anotherClient, Currency.USD, 7));
+        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(anotherClient, Currency.USD, 10));
 
         System.out.println(EXCHANGE_SERVICE.getInfo(client));
         System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
@@ -38,15 +38,15 @@ public class TradingController {
                 client,
                 new CurrencyPair(Currency.RUB, Currency.USD),
                 OrderDirection.BUY,
-                BigDecimal.valueOf(6),
+                BigDecimal.valueOf(7),
                 BigDecimal.valueOf(50)));
 
         EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
                 anotherClient,
                 new CurrencyPair(Currency.USD, Currency.RUB),
                 OrderDirection.SELL,
-                BigDecimal.valueOf(7),
-                BigDecimal.valueOf(50)));
+                BigDecimal.valueOf(10),
+                BigDecimal.valueOf(42)));
 
         EXCHANGE_SERVICE.getOrders().forEach(ORDER_SERVICE::revoke);
         System.out.println(EXCHANGE_SERVICE.getInfo(client));

@@ -13,6 +13,7 @@ import com.shishkin.service.OrderService;
 import com.shishkin.utils.BigDecimalUtils;
 
 import java.math.BigDecimal;
+import java.sql.SQLOutput;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +40,8 @@ public class OrderServiceImpl implements OrderService {
 
     private void executeOrders(Order buyOrder,
                                Order sellOrder) {
-        if (buyOrder.getTotalPrice().compareTo(sellOrder.getTotalPrice().multiply(buyOrder.getPrice())) == 0) {
+        if (buyOrder.getTotalPrice().compareTo(
+                BigDecimalUtils.round(sellOrder.getTotalPrice().multiply(buyOrder.getPrice()))) == 0) {
             fillOrders(buyOrder, sellOrder);
         } else {
             partiallyFillOrders(buyOrder, sellOrder);
@@ -48,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void partiallyFillOrders(Order buyOrder, Order sellOrder) {
         BigDecimal amount = buyOrder.getAmount().min(sellOrder.getAmount());
+        System.out.println(amount);
         BigDecimal price = getPriceByOrderDirection(buyOrder, sellOrder);
 
         partiallyFillOrder(buyOrder, amount, price);
@@ -57,10 +60,11 @@ public class OrderServiceImpl implements OrderService {
 
     private void partiallyFillOrder(Order order, BigDecimal amount, BigDecimal price) {
         BigDecimal transferTotal = OrderDirection.BUY.equals(order.getOrderDirection())
-                ? amount : amount.multiply(price);
+                ? amount : BigDecimalUtils.round(amount.multiply(price));
         BigDecimal totalChange = OrderDirection.SELL.equals(order.getOrderDirection())
-                ? amount : amount.multiply(price);
+                ? amount : BigDecimalUtils.round(amount.multiply(price));
         //TODO: SAVE ORDER AND ROLLBACK IN FINALLY
+
         order.setAmount(order.getAmount().subtract(amount));
         order.setTotalPrice(order.getTotalPrice().subtract(totalChange));
 
@@ -75,13 +79,17 @@ public class OrderServiceImpl implements OrderService {
 
     private void fillOrder(Order order, BigDecimal amount) {
         depositByExecuteOrder(order, amount);
+        order.setTotalPrice(BigDecimalUtils.round(BigDecimal.ZERO));
+        order.setAmount(BigDecimalUtils.round(BigDecimal.ZERO));
         order.setStatus(OrderStatus.FILL);
     }
 
     @Override
     public void revoke(Order order) {
-        CLIENT_SERVICE.deposit(new ClientOperationDto(order.getClient(),
-                order.getCurrencyPair().getFrom(), order.getTotalPrice()));
+        if(order.getTotalPrice().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
+            CLIENT_SERVICE.deposit(new ClientOperationDto(order.getClient(),
+                    order.getCurrencyPair().getFrom(), order.getTotalPrice()));
+        }
         order.setStatus(OrderStatus.CANCELLED);
     }
 

@@ -24,10 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExchangeServiceImpl implements ExchangeService {
     private static final OrderService ORDER_SERVICE = new OrderServiceImpl();
     private static final ClientService CLIENT_SERVICE = new ClientServiceImpl();
-    private final Map<CurrencyPair, List<Order>> orders;
+    private static final Map<CurrencyPair, List<Order>> orders = new ConcurrentHashMap<>();
 
     public ExchangeServiceImpl(Set<CurrencyPair> currencyPairs) {
-        this.orders = new ConcurrentHashMap<>(currencyPairs.size());
         for (CurrencyPair currencyPair : currencyPairs) {
             orders.put(currencyPair, new ArrayList<>());
         }
@@ -58,24 +57,28 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     @Override
     public void createOrder(OrderOperationDto orderOperationDto) {
-        try {
-            Order order = ORDER_SERVICE.createOrder(orderOperationDto);
-            synchronized (order.getCurrencyPair()) {
+        synchronized (orderOperationDto.getCurrencyPair()) {
+            try {
+                Order order = ORDER_SERVICE.createOrder(orderOperationDto);
                 List<Order> matchOrders = orders.get(order.getCurrencyPair()).stream()
                         .filter(item -> matchOrdersFilter(item, order))
                         .sorted(Comparator.comparing(Order::getPrice))
                         .toList();
-                matchOrders.forEach(matchOrder -> {
-                    System.out.println("#match: " + order.getId() + " - " + matchOrder.getId());
+                for (Order matchOrder :
+                        matchOrders) {
                     ORDER_SERVICE.execute(matchOrder, order);
-                });
+                    if (OrderStatus.FILL.equals(matchOrder.getStatus())) ORDER_SERVICE.revoke(matchOrder);
+                    if (OrderStatus.FILL.equals(order.getStatus())) {
+                        ORDER_SERVICE.revoke(order);
+                        return;
+                    }
+                }
                 if (order.getAmount().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
                     orders.get(orderOperationDto.getCurrencyPair()).add(order);
                 }
+            } catch (NotEnoughMoneyException e) {
+                System.err.println(e.getMessage());
             }
-
-        } catch (NotEnoughMoneyException e) {
-            System.err.println(e.getMessage());
         }
     }
 
@@ -90,12 +93,17 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     private boolean matchOrdersFilter(Order order, Order anotherOrder) {
-        return filterByType(order, anotherOrder) && filterByPrice(order, anotherOrder)
+        return filterByType(order, anotherOrder) && filterByPrice(order, anotherOrder) && filterByClient(order, anotherOrder)
                 && OrderStatus.isActiveOrder(order) && OrderStatus.isActiveOrder(anotherOrder);
     }
 
     private boolean filterByType(Order order, Order anotherOrder) {
-        return !order.getOrderDirection().equals(anotherOrder.getOrderDirection());
+        return !order.getOrderDirection().equals(anotherOrder.getOrderDirection())
+                && !order.getCurrencyPair().getTo().equals(anotherOrder.getCurrencyPair().getTo());
+    }
+
+    private boolean filterByClient(Order order, Order anotherOrder) {
+        return !order.getClient().equals(anotherOrder.getClient());
     }
 
     private boolean filterByPrice(Order order, Order anotherOrder) {
