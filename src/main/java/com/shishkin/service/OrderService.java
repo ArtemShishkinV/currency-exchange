@@ -15,6 +15,8 @@ public interface OrderService {
 
     void revoke(Order order);
 
+    void processOrder(Order order, List<Order> orders);
+
     List<Order> getActiveOrders(Map<CurrencyPair, List<Order>> orders);
 
     List<Order> getAllOrders(Map<CurrencyPair, List<Order>> orders);

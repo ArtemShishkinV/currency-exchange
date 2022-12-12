@@ -8,8 +8,8 @@ import com.shishkin.model.currency.CurrencyPair;
 import com.shishkin.model.order.OrderDirection;
 import com.shishkin.service.ExchangeService;
 import com.shishkin.service.OrderService;
-import com.shishkin.service.implementation.ExchangeServiceImpl;
-import com.shishkin.service.implementation.OrderServiceImpl;
+import com.shishkin.service.implementation.simple.ExchangeServiceImpl;
+import com.shishkin.service.implementation.simple.OrderServiceImpl;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

@@ -5,7 +5,7 @@ import com.shishkin.exception.NotEnoughMoneyException;
 import com.shishkin.model.Client;
 import com.shishkin.model.currency.Currency;
 import com.shishkin.service.ClientService;
-import com.shishkin.service.implementation.ClientServiceImpl;
+import com.shishkin.service.implementation.simple.ClientServiceImpl;
 import com.shishkin.utils.BigDecimalUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

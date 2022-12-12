@@ -1,4 +1,4 @@
-package com.shishkin.service.implementation;
+package com.shishkin.service.implementation.simple;
 
 import com.shishkin.dto.ClientOperationDto;
 import com.shishkin.dto.OrderOperationDto;
@@ -13,7 +13,6 @@ import com.shishkin.service.OrderService;
 import com.shishkin.utils.BigDecimalUtils;
 
 import java.math.BigDecimal;
-import java.sql.SQLOutput;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +20,48 @@ import java.util.Map;
 
 public class OrderServiceImpl implements OrderService {
     private static final ClientService CLIENT_SERVICE = new ClientServiceImpl();
+
+    @Override
+    public void processOrder(Order order, List<Order> orders) {
+        List<Order> matchOrders = orders.stream()
+                .filter(item -> matchOrdersFilter(item, order))
+                .sorted(Comparator.comparing(Order::getPrice))
+                .toList();
+        for (Order matchOrder :
+                matchOrders) {
+            this.execute(matchOrder, order);
+            if (OrderStatus.FILL.equals(matchOrder.getStatus())) this.revoke(matchOrder);
+            if (OrderStatus.FILL.equals(order.getStatus())) {
+                this.revoke(order);
+                return;
+            }
+        }
+        if (order.getAmount().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
+            orders.add(order);
+        }
+    }
+
+    protected boolean matchOrdersFilter(Order order, Order anotherOrder) {
+        return filterByType(order, anotherOrder) && filterByPrice(order, anotherOrder) && filterByClient(order, anotherOrder)
+                && OrderStatus.isActiveOrder(order) && OrderStatus.isActiveOrder(anotherOrder);
+    }
+
+    protected boolean filterByType(Order order, Order anotherOrder) {
+        return !order.getOrderDirection().equals(anotherOrder.getOrderDirection())
+                && !order.getCurrencyPair().getTo().equals(anotherOrder.getCurrencyPair().getTo());
+    }
+
+    protected boolean filterByClient(Order order, Order anotherOrder) {
+        return !order.getClient().equals(anotherOrder.getClient());
+    }
+
+    protected boolean filterByPrice(Order order, Order anotherOrder) {
+        if (OrderDirection.BUY.equals(order.getOrderDirection())) {
+            return order.getPrice().compareTo(anotherOrder.getPrice()) >= 0;
+        } else {
+            return order.getPrice().compareTo(anotherOrder.getPrice()) <= 0;
+        }
+    }
 
     @Override
     public Order createOrder(OrderOperationDto orderOperationDto) throws NotEnoughMoneyException {

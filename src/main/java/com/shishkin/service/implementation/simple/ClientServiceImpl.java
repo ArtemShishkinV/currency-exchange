@@ -1,4 +1,4 @@
-package com.shishkin.service.implementation;
+package com.shishkin.service.implementation.simple;
 
 import com.shishkin.dto.ClientOperationDto;
 import com.shishkin.exception.NotEnoughMoneyException;
