@@ -62,7 +62,6 @@ public class OrderServiceImpl implements OrderService {
                 ? amount : BigDecimalUtils.round(amount.multiply(price));
         BigDecimal totalChange = OrderDirection.SELL.equals(order.getOrderDirection())
                 ? amount : BigDecimalUtils.round(amount.multiply(price));
-        //TODO: SAVE ORDER AND ROLLBACK IN FINALLY
 
         order.setAmount(order.getAmount().subtract(amount));
         order.setTotalPrice(order.getTotalPrice().subtract(totalChange));
@@ -139,7 +138,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void changeStatusByAmount(Order order) {
-        //TODO: may be throw exception and rollback if negative number in result amount
         if (BigDecimalUtils.round(BigDecimal.ZERO).compareTo(order.getAmount()) == 0) {
             order.setStatus(OrderStatus.FILL);
         } else {
