@@ -8,6 +8,7 @@ import com.shishkin.model.currency.CurrencyPair;
 import com.shishkin.model.order.OrderDirection;
 import com.shishkin.service.ExchangeService;
 import com.shishkin.service.OrderService;
+import com.shishkin.service.implementation.queue.QueueExchangeServiceImpl;
 import com.shishkin.service.implementation.simple.ExchangeServiceImpl;
 import com.shishkin.service.implementation.simple.OrderServiceImpl;
 import com.shishkin.utils.BigDecimalUtils;
@@ -43,7 +44,7 @@ class ExchangeServiceAsyncTest {
 
     @BeforeAll
     static void setup() {
-        exchangeService = new ExchangeServiceImpl(CURRENCY_PAIRS);
+        exchangeService = new QueueExchangeServiceImpl(CURRENCY_PAIRS);
     }
 
     @BeforeEach
