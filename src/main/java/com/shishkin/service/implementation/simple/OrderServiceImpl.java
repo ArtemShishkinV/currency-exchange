@@ -27,15 +27,7 @@ public class OrderServiceImpl implements OrderService {
                 .filter(item -> matchOrdersFilter(item, order))
                 .sorted(Comparator.comparing(Order::getPrice))
                 .toList();
-        for (Order matchOrder :
-                matchOrders) {
-            this.execute(matchOrder, order);
-            if (OrderStatus.FILL.equals(matchOrder.getStatus())) this.revoke(matchOrder);
-            if (OrderStatus.FILL.equals(order.getStatus())) {
-                this.revoke(order);
-                return;
-            }
-        }
+        matchOrders.forEach(matchOrder -> this.execute(matchOrder, order));
         if (order.getAmount().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
             orders.add(order);
         }
@@ -47,8 +39,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     protected boolean filterByType(Order order, Order anotherOrder) {
-        return !order.getOrderDirection().equals(anotherOrder.getOrderDirection())
-                && !order.getCurrencyPair().getTo().equals(anotherOrder.getCurrencyPair().getTo());
+        return !order.getOrderDirection().equals(anotherOrder.getOrderDirection());
     }
 
     protected boolean filterByClient(Order order, Order anotherOrder) {
@@ -81,8 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void executeOrders(Order buyOrder,
                                Order sellOrder) {
-        if (buyOrder.getTotalPrice().compareTo(
-                BigDecimalUtils.round(sellOrder.getTotalPrice().multiply(buyOrder.getPrice()))) == 0) {
+        if (buyOrder.getAmount().compareTo(sellOrder.getAmount()) == 0) {
             fillOrders(buyOrder, sellOrder);
         } else {
             partiallyFillOrders(buyOrder, sellOrder);
@@ -91,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void partiallyFillOrders(Order buyOrder, Order sellOrder) {
         BigDecimal amount = buyOrder.getAmount().min(sellOrder.getAmount());
-        BigDecimal price = getPriceByOrderDirection(buyOrder, sellOrder);
+        BigDecimal price = sellOrder.getPrice();
 
         partiallyFillOrder(buyOrder, amount, price);
         partiallyFillOrder(sellOrder, amount, price);
@@ -109,27 +99,34 @@ public class OrderServiceImpl implements OrderService {
 
         depositByExecuteOrder(order, transferTotal);
         changeStatusByAmount(order);
+        if (OrderStatus.FILL.equals(order.getStatus())) this.revoke(order);
     }
 
     private void fillOrders(Order buyOrder, Order sellOrder) {
-        fillOrder(sellOrder, buyOrder.getTotalPrice());
-        fillOrder(buyOrder, sellOrder.getTotalPrice());
+        BigDecimal totalSell = BigDecimalUtils.round(sellOrder.getAmount().multiply(sellOrder.getPrice()));
+        BigDecimal amountSell = sellOrder.getAmount();
+        fillOrder(sellOrder, totalSell, BigDecimal.ZERO);
+        fillOrder(buyOrder, amountSell, totalSell);
     }
 
-    private void fillOrder(Order order, BigDecimal amount) {
-        depositByExecuteOrder(order, amount);
-        order.setTotalPrice(BigDecimalUtils.round(BigDecimal.ZERO));
+    private void fillOrder(Order order, BigDecimal transfer, BigDecimal diffTotal) {
+        depositByExecuteOrder(order, transfer);
+        order.setTotalPrice(
+                order.getOrderDirection().equals(OrderDirection.SELL) ? BigDecimalUtils.round(BigDecimal.ZERO) :
+                order.getTotalPrice().subtract(diffTotal));
         order.setAmount(BigDecimalUtils.round(BigDecimal.ZERO));
         order.setStatus(OrderStatus.FILL);
+        revoke(order);
     }
 
     @Override
     public void revoke(Order order) {
         if(order.getTotalPrice().compareTo(BigDecimalUtils.round(BigDecimal.ZERO)) > 0) {
             CLIENT_SERVICE.deposit(new ClientOperationDto(order.getClient(),
-                    order.getCurrencyPair().getFrom(), order.getTotalPrice()));
+                    getCurrencyByOrder(order), order.getTotalPrice()));
+            order.setTotalPrice(BigDecimalUtils.round(BigDecimal.ZERO));
+            order.setStatus(OrderStatus.CANCELLED);
         }
-        order.setStatus(OrderStatus.CANCELLED);
     }
 
     @Override
@@ -152,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
             throws NotEnoughMoneyException {
         try {
             CLIENT_SERVICE.withdraw(new ClientOperationDto(
-                    orderOperationDto.getClient(), orderOperationDto.getCurrencyPair().getFrom(),
+                    orderOperationDto.getClient(), getCurrencyByOrder(orderOperationDto),
                     orderOperationDto.getTotalPrice()
             ));
         } catch (NotEnoughMoneyException e) {
@@ -166,16 +163,11 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private BigDecimal getPriceByOrderDirection(Order order, Order anotherOrder) {
-        if (OrderDirection.BUY.equals(order.getOrderDirection())) {
-            return order.getPrice().min(anotherOrder.getPrice());
-        }
-        return order.getPrice().max(anotherOrder.getPrice());
-    }
-
     private void depositByExecuteOrder(Order order, BigDecimal amount) {
+        Currency currency = order.getOrderDirection().equals(OrderDirection.SELL) ?
+                order.getCurrencyPair().getTo() : order.getCurrencyPair().getFrom();
         CLIENT_SERVICE.deposit(new ClientOperationDto(
-                order.getClient(), order.getCurrencyPair().getTo(), amount));
+                order.getClient(), currency, amount));
     }
 
     private void changeStatusByAmount(Order order) {
@@ -184,5 +176,15 @@ public class OrderServiceImpl implements OrderService {
         } else {
             order.setStatus(OrderStatus.PARTIALLYFILL);
         }
+    }
+
+    private Currency getCurrencyByOrder(OrderOperationDto orderOperationDto) {
+        return orderOperationDto.getOrderDirection().equals(OrderDirection.BUY) ?
+        orderOperationDto.getCurrencyPair().getTo() : orderOperationDto.getCurrencyPair().getFrom();
+    }
+
+    private Currency getCurrencyByOrder(Order order) {
+        return order.getOrderDirection().equals(OrderDirection.BUY) ?
+                order.getCurrencyPair().getTo() : order.getCurrencyPair().getFrom();
     }
 }

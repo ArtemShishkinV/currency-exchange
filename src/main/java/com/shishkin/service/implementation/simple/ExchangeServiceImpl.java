@@ -15,16 +15,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ExchangeServiceImpl extends AbstractExchangeService {
     private static final Map<CurrencyPair, List<Order>> orders = new ConcurrentHashMap<>();
+    private static final Map<CurrencyPair, Object> locks = new ConcurrentHashMap<>();
 
     public ExchangeServiceImpl(Set<CurrencyPair> currencyPairs) {
         for (CurrencyPair currencyPair : currencyPairs) {
             orders.put(currencyPair, new ArrayList<>());
+            locks.put(currencyPair, new Object());
         }
     }
 
     @Override
     public void createOrder(OrderOperationDto orderOperationDto) {
-        synchronized (orderOperationDto.getCurrencyPair()) {
+        synchronized (locks.get(orderOperationDto.getCurrencyPair())) {
             try {
                 Order order = ORDER_SERVICE.createOrder(orderOperationDto);
                 ORDER_SERVICE.processOrder(order, orders.get(orderOperationDto.getCurrencyPair()));

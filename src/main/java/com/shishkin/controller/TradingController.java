@@ -19,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TradingController {
     private static final Set<CurrencyPair> CURRENCY_PAIRS = Set.of(
-            new CurrencyPair(Currency.RUB, Currency.USD)
+            new CurrencyPair(Currency.USD, Currency.RUB)
     );
     private static final ExchangeService EXCHANGE_SERVICE = new ExchangeServiceImpl(CURRENCY_PAIRS);
     private static final OrderService ORDER_SERVICE = new OrderServiceImpl();
@@ -28,7 +28,7 @@ public class TradingController {
         Client client = EXCHANGE_SERVICE.createClient();
         Client anotherClient = EXCHANGE_SERVICE.createClient();
         EXCHANGE_SERVICE.getInfo(client);
-        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(client, Currency.RUB, 350));
+        EXCHANGE_SERVICE.deposit(ClientOperationDto.create(client, Currency.RUB, 500));
         EXCHANGE_SERVICE.deposit(ClientOperationDto.create(anotherClient, Currency.USD, 10));
 
         System.out.println(EXCHANGE_SERVICE.getInfo(client));
@@ -36,19 +36,35 @@ public class TradingController {
 
         EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
                 client,
-                new CurrencyPair(Currency.RUB, Currency.USD),
+                new CurrencyPair(Currency.USD, Currency.RUB),
                 OrderDirection.BUY,
-                BigDecimal.valueOf(7),
+                BigDecimal.valueOf(10),
                 BigDecimal.valueOf(50)));
 
         EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
                 anotherClient,
                 new CurrencyPair(Currency.USD, Currency.RUB),
                 OrderDirection.SELL,
-                BigDecimal.valueOf(10),
-                BigDecimal.valueOf(42)));
+                BigDecimal.valueOf(8),
+                BigDecimal.valueOf(50)));
+
+//        System.out.println(EXCHANGE_SERVICE.getInfo(client));
+//        System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
+//        System.out.println(EXCHANGE_SERVICE.getOrders());
+//
+//        EXCHANGE_SERVICE.createOrder(new OrderOperationDto(
+//                client,
+//                new CurrencyPair(Currency.USD, Currency.RUB),
+//                OrderDirection.BUY,
+//                BigDecimal.valueOf(1),
+//                BigDecimal.valueOf(46)));
+
+        System.out.println(EXCHANGE_SERVICE.getInfo(client));
+        System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
+        System.out.println(EXCHANGE_SERVICE.getOrders());
 
         EXCHANGE_SERVICE.getOrders().forEach(ORDER_SERVICE::revoke);
+
         System.out.println(EXCHANGE_SERVICE.getInfo(client));
         System.out.println(EXCHANGE_SERVICE.getInfo(anotherClient));
         System.out.println(EXCHANGE_SERVICE.getOrders());

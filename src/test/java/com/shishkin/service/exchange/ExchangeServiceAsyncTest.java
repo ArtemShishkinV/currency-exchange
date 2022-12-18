@@ -9,7 +9,6 @@ import com.shishkin.model.order.OrderDirection;
 import com.shishkin.service.ExchangeService;
 import com.shishkin.service.OrderService;
 import com.shishkin.service.implementation.queue.QueueExchangeServiceImpl;
-import com.shishkin.service.implementation.simple.ExchangeServiceImpl;
 import com.shishkin.service.implementation.simple.OrderServiceImpl;
 import com.shishkin.utils.BigDecimalUtils;
 import org.junit.jupiter.api.Assertions;
@@ -29,8 +28,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 class ExchangeServiceAsyncTest {
-    private static final int COUNT_ORDERS_CLIENT = 10;
-    private static final int COUNT_CLIENTS = 10;
+    private static final int COUNT_ORDERS_CLIENT = 50;
+    private static final int COUNT_CLIENTS = 30;
     private static final Set<CurrencyPair> CURRENCY_PAIRS = Set.of(
             new CurrencyPair(Currency.RUB, Currency.USD),
             new CurrencyPair(Currency.RUB, Currency.EUR),
@@ -56,7 +55,7 @@ class ExchangeServiceAsyncTest {
     void sumAfterManyRandomOrdersTrading() throws InterruptedException {
         List<Client> clients = new ArrayList<>();
         OrderService orderService = new OrderServiceImpl();
-        BigDecimal deposit = BigDecimalUtils.round(BigDecimal.valueOf(100_000));
+        BigDecimal deposit = BigDecimalUtils.round(BigDecimal.valueOf(1_000_000));
         ExecutorService executor = Executors.newCachedThreadPool();
 
         for (int i = 0; i < COUNT_CLIENTS; i++) {
@@ -96,6 +95,7 @@ class ExchangeServiceAsyncTest {
 
         BigDecimal sum = BigDecimalUtils.round(BigDecimal.ZERO);
 
+
         for (Client client : clients) {
             Map<Currency, BigDecimal> clientAccs = client.getAccounts();
             sum = sum.add(clientAccs.get(Currency.RUB)
@@ -109,9 +109,9 @@ class ExchangeServiceAsyncTest {
 
     private OrderOperationDto getRandomOrder(Client client) {
         BigDecimal amount = BigDecimalUtils.round(BigDecimal.valueOf(
-                ThreadLocalRandom.current().nextInt(1, 20)));
+                ThreadLocalRandom.current().nextInt(100, 1000)));
         BigDecimal price = BigDecimalUtils.round(BigDecimal.valueOf(
-                ThreadLocalRandom.current().nextInt(1, 100)));
+                ThreadLocalRandom.current().nextInt(10, 50)));
         return new OrderOperationDto(client, getRandomCurrencyPair(), getRandomOrderDirection(), amount, price);
     }
 
@@ -119,7 +119,7 @@ class ExchangeServiceAsyncTest {
         int size = CURRENCY_PAIRS.size();
         int item = ThreadLocalRandom.current().nextInt(size);
         int i = 0;
-        CurrencyPair currencyPair = new CurrencyPair(Currency.RUB, Currency.USD);
+        CurrencyPair currencyPair = null;
         for (CurrencyPair obj : CURRENCY_PAIRS) {
             if (i == item)
                 currencyPair = obj;

@@ -4,6 +4,7 @@ import com.shishkin.exception.NotEnoughMoneyException;
 import com.shishkin.model.currency.Currency;
 import com.shishkin.utils.BigDecimalUtils;
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.EnumMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Client {
     private final Long id;
     private final Map<Currency, BigDecimal> accounts = new ConcurrentHashMap<>(Currency.values().length);
-
+    @ToString.Exclude
     private final Map<Currency, Object> locks = new ConcurrentHashMap<>(Currency.values().length);
 
     public Client() {
