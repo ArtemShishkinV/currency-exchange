@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class QueueExchangeServiceImpl extends AbstractExchangeService {
     private static final long ORDER_PROCESSING_TIMEOUT_MIN = 2;
@@ -54,8 +54,10 @@ public class QueueExchangeServiceImpl extends AbstractExchangeService {
         OrderRequestDto orderRequestDto = new OrderRequestDto(orderOperationDto);
         requestOrders.add(orderRequestDto);
         try {
-            if (!orderRequestDto.await()) throw new InterruptedException();
+            if (!orderRequestDto.await(ORDER_PROCESSING_TIMEOUT_MIN, TimeUnit.MINUTES))
+                throw new InterruptedException();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             System.err.println("Exchange was interrupted");
         }
 
@@ -76,7 +78,6 @@ public class QueueExchangeServiceImpl extends AbstractExchangeService {
     private void createRequestThread() {
         Thread requestOrdersListener = new Thread(new OrderRequestListener(requestOrders, currencyPairRequestOrders));
         requestOrdersListener.setDaemon(true);
-
         requestOrdersListener.start();
     }
 }

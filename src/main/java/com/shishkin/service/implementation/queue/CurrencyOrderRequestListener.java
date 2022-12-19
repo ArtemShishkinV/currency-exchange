@@ -42,12 +42,13 @@ public class CurrencyOrderRequestListener implements Runnable{
     }
 
     private void createOrder() throws InterruptedException {
-        while(true) {
+        while (true) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
             OrderRequestDto orderRequest = this.orderRequests.poll(TIMEOUT, TimeUnit.MINUTES);
             if (orderRequest != null) {
+                System.out.println("work");
                 getOrder(orderRequest);
             }
         }

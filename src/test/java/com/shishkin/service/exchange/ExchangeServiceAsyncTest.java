@@ -5,9 +5,11 @@ import com.shishkin.dto.OrderOperationDto;
 import com.shishkin.model.Client;
 import com.shishkin.model.currency.Currency;
 import com.shishkin.model.currency.CurrencyPair;
+import com.shishkin.model.order.Order;
 import com.shishkin.model.order.OrderDirection;
 import com.shishkin.service.ExchangeService;
 import com.shishkin.service.OrderService;
+import com.shishkin.service.implementation.disruptor.DisruptorExchangeServiceImpl;
 import com.shishkin.service.implementation.queue.QueueExchangeServiceImpl;
 import com.shishkin.service.implementation.simple.OrderServiceImpl;
 import com.shishkin.utils.BigDecimalUtils;
@@ -28,8 +30,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 class ExchangeServiceAsyncTest {
-    private static final int COUNT_ORDERS_CLIENT = 50;
-    private static final int COUNT_CLIENTS = 30;
+    private static final int COUNT_ORDERS_CLIENT = 100;
+    private static final int COUNT_CLIENTS = 50;
     private static final Set<CurrencyPair> CURRENCY_PAIRS = Set.of(
             new CurrencyPair(Currency.RUB, Currency.USD),
             new CurrencyPair(Currency.RUB, Currency.EUR),
@@ -87,11 +89,12 @@ class ExchangeServiceAsyncTest {
         executor.shutdown();
         executor.awaitTermination(20, TimeUnit.SECONDS);
 
-        clients.forEach(System.out::println);
+        Thread.sleep(1000);
 
-        exchangeService.getOrders().forEach(orderService::revoke);
+        System.out.println("end");
 
-        clients.forEach(System.out::println);
+        for (Order order : exchangeService.getOrders()) orderService.revoke(order);
+
 
         BigDecimal sum = BigDecimalUtils.round(BigDecimal.ZERO);
 
@@ -109,7 +112,7 @@ class ExchangeServiceAsyncTest {
 
     private OrderOperationDto getRandomOrder(Client client) {
         BigDecimal amount = BigDecimalUtils.round(BigDecimal.valueOf(
-                ThreadLocalRandom.current().nextInt(100, 1000)));
+                ThreadLocalRandom.current().nextInt(10, 100)));
         BigDecimal price = BigDecimalUtils.round(BigDecimal.valueOf(
                 ThreadLocalRandom.current().nextInt(10, 50)));
         return new OrderOperationDto(client, getRandomCurrencyPair(), getRandomOrderDirection(), amount, price);
