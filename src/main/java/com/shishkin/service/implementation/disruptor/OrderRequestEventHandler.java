@@ -32,7 +32,6 @@ public class OrderRequestEventHandler implements EventHandler<OrderRequestEventF
         }
         OrderRequestDto orderRequestDto = event.getOrderRequestDto();
         try {
-            System.out.println("work");
             Order order = ORDER_SERVICE.createOrder(orderRequestDto.getOrderOperationDto());
             ORDER_SERVICE.processOrder(order, orders);
             orderRequestDto.complete();

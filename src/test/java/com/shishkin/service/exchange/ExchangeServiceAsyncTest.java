@@ -91,8 +91,6 @@ class ExchangeServiceAsyncTest {
 
         Thread.sleep(1000);
 
-        System.out.println("end");
-
         for (Order order : exchangeService.getOrders()) orderService.revoke(order);
 
 

@@ -48,7 +48,6 @@ public class CurrencyOrderRequestListener implements Runnable{
             }
             OrderRequestDto orderRequest = this.orderRequests.poll(TIMEOUT, TimeUnit.MINUTES);
             if (orderRequest != null) {
-                System.out.println("work");
                 getOrder(orderRequest);
             }
         }
